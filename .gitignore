@@ -1,0 +1,12 @@
+# Docker volumes
+prometheus_data/
+grafana_data/
+
+# OS files
+.DS_Store
+*.swp
+*.swo
+
+# IDE
+.idea/
+.vscode/

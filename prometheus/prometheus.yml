@@ -1,0 +1,59 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ICMP Ping monitoring - Router and connected devices
+  - job_name: 'blackbox-icmp'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: /probe
+    params:
+      module: [icmp]
+    static_configs:
+      - targets:
+          # Router & Internet
+          - 192.168.0.1    # TP-Link Router (Gateway)
+          - 8.8.8.8        # Google DNS (Internet connectivity)
+          - 1.1.1.1        # Cloudflare DNS (Internet connectivity)
+          # Local Devices
+          - 192.168.0.101  # Mac (This machine)
+          - 192.168.0.131  # Device 1
+          - 192.168.0.139  # Device 2
+          - 192.168.0.159  # Device 3
+          - 192.168.0.161  # Device 4
+          - 192.168.0.196  # Device 5
+        labels:
+          probe_type: icmp
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__address__]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # HTTP probe - Router web interface
+  - job_name: 'blackbox-http'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://192.168.0.1   # Router web interface
+        labels:
+          probe_type: http
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__address__]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
