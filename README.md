@@ -105,3 +105,5 @@ docker restart home-prometheus
     ├── dashboards/
     └── provisioning/
 ```
+## Dashboard
+![alt text](Images/Dashboard.png)
