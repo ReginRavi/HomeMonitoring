@@ -93,12 +93,53 @@ Then restart Prometheus:
 docker restart home-prometheus
 ```
 
+## Service Dependencies
+
+The monitoring stack includes **dependency-aware status tracking**. When your router goes down, connected devices will show as **UNREACHABLE** instead of **DOWN** (since they can't be reached anyway).
+
+### How It Works
+
+```mermaid
+flowchart TD
+    Router["🏠 Router<br/>192.168.0.1"]
+    Device1["📱 Device 1"]
+    Device2["📱 Device 2"]
+    
+    Device1 -->|"depends on"| Router
+    Device2 -->|"depends on"| Router
+    
+    subgraph Status["Status Logic"]
+        S1["Router UP → Show actual device status"]
+        S2["Router DOWN → All devices = UNREACHABLE"]
+    end
+```
+
+### Recording Rules
+
+The following computed metrics are available in Prometheus:
+
+| Metric | Description |
+|--------|-------------|
+| `network:router:up` | Router status (1=up, 0=down) |
+| `network:device:effective_status` | Device status considering router state |
+| `network:device:status_code` | Status code: 1=Up, 0=Down, -1=Unreachable |
+| `network:device:effective_latency` | Latency (only when router is up) |
+
+### Dashboard
+
+The dashboard includes a **"Dependency-Aware Status"** section showing:
+- **UP** (green) - Device is reachable
+- **DOWN** (red) - Device is offline
+- **UNREACHABLE** (orange) - Router is down, cannot determine status
+
+
 ## Project Structure
 
 ```
 ├── docker-compose.yml
 ├── prometheus/
-│   └── prometheus.yml
+│   ├── prometheus.yml
+│   └── rules.yml          # Dependency recording rules
 ├── blackbox-exporter/
 │   └── blackbox.yml
 └── grafana/
@@ -107,3 +148,6 @@ docker restart home-prometheus
 ```
 ## Dashboard
 ![alt text](Images/Dashboard.png)
+
+## SLO Dashboard
+![alt text](Images/SLO.png)

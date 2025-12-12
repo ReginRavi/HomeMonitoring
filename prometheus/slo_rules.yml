@@ -1,0 +1,42 @@
+groups:
+  - name: slo_recording_rules
+    interval: 15s
+    rules:
+      # ------------------------------------------------------------------------
+      # BASE METRICS
+      # ------------------------------------------------------------------------
+      
+      # Latency Compliance Boolean (1 = Compliant, 0 = Non-compliant)
+      # Internal devices (Router, Switch, AP, Devices): Target < 50ms (0.05s)
+      # External (Internet): Target < 100ms (0.10s)
+      - record: probe_latency_compliant
+        expr: |
+          (probe_duration_seconds{device_type=~"router|switch|ap|device"} < bool 0.05)
+          or
+          (probe_duration_seconds{device_type="external"} < bool 0.10)
+
+      # ------------------------------------------------------------------------
+      # SLO META METRICS (Rolling Windows)
+      # ------------------------------------------------------------------------
+
+      # Availability SLO (30d window)
+      # Percentage of successful probes over last 30 days
+      - record: slo:service:availability:30d
+        expr: avg_over_time(probe_success[30d])
+
+      # Latency SLO (30d window)
+      # Percentage of probes meeting latency target over last 30 days
+      - record: slo:service:latency:30d
+        expr: avg_over_time(probe_latency_compliant[30d])
+
+      # ------------------------------------------------------------------------
+      # SHORT TERM TRENDS (For Graphs)
+      # ------------------------------------------------------------------------
+      
+      # 1h Availability
+      - record: slo:service:availability:1h
+        expr: avg_over_time(probe_success[1h])
+        
+      # 1h Latency Compliance
+      - record: slo:service:latency:1h
+        expr: avg_over_time(probe_latency_compliant[1h])

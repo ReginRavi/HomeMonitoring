@@ -2,13 +2,18 @@ global:
   scrape_interval: 30s
   evaluation_interval: 30s
 
+# Recording rules for dependency mapping
+rule_files:
+  - /etc/prometheus/rules.yml
+  - /etc/prometheus/slo_rules.yml
+
 scrape_configs:
   # Prometheus self-monitoring
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
 
-  # ICMP Ping monitoring - Router and connected devices
+  # ICMP Ping monitoring with hierarchical dependencies
   - job_name: 'blackbox-icmp'
     scrape_interval: 15s
     scrape_timeout: 10s
@@ -16,20 +21,68 @@ scrape_configs:
     params:
       module: [icmp]
     static_configs:
-      - targets:
-          # Router & Internet
-          - 192.168.0.1    # TP-Link Router (Gateway)
-          - 8.8.8.8        # Google DNS (Internet connectivity)
-          - 1.1.1.1        # Cloudflare DNS (Internet connectivity)
-          # Local Devices
-          - 192.168.0.101  # Mac (This machine)
-          - 192.168.0.131  # Device 1
-          - 192.168.0.139  # Device 2
-          - 192.168.0.159  # Device 3
-          - 192.168.0.161  # Device 4
-          - 192.168.0.196  # Device 5
+      # Level 0: Internet (root - no parent)
+      - targets: ['8.8.8.8']
         labels:
+          device_name: internet
+          device_type: external
+          level: "0"
           probe_type: icmp
+          
+      # Level 1: Router (depends on internet)
+      - targets: ['192.168.0.1']
+        labels:
+          device_name: router
+          device_type: router
+          depends_on: internet
+          level: "1"
+          probe_type: icmp
+          
+      # Level 2: Switch (depends on router)
+      - targets: ['192.168.0.2']
+        labels:
+          device_name: switch
+          device_type: switch
+          depends_on: router
+          level: "2"
+          probe_type: icmp
+          
+      # Level 2: Access Point (depends on router)
+      - targets: ['192.168.0.3']
+        labels:
+          device_name: accesspoint
+          device_type: ap
+          depends_on: router
+          level: "2"
+          probe_type: icmp
+          
+      # Level 3: PC1 (depends on switch)
+      - targets: ['192.168.0.100']
+        labels:
+          device_name: pc1
+          device_type: device
+          depends_on: switch
+          level: "3"
+          probe_type: icmp
+          
+      # Level 3: PC2 (depends on switch)
+      - targets: ['192.168.0.101']
+        labels:
+          device_name: pc2
+          device_type: device
+          depends_on: switch
+          level: "3"
+          probe_type: icmp
+          
+      # Level 3: Phone (depends on access point)
+      - targets: ['192.168.0.102']
+        labels:
+          device_name: phone
+          device_type: device
+          depends_on: accesspoint
+          level: "3"
+          probe_type: icmp
+          
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target

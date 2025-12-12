@@ -793,6 +793,808 @@
                 }
             ],
             "type": "table"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 29
+            },
+            "id": 12,
+            "panels": [],
+            "title": "🔗 Dependency-Aware Status",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+            },
+            "description": "Shows device status considering router connectivity. If router is down, devices show as UNREACHABLE.",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "custom": {
+                        "align": "center",
+                        "cellOptions": {
+                            "type": "auto"
+                        },
+                        "inspect": false
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "text",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Effective Status"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "mode": "basic",
+                                    "type": "color-background"
+                                }
+                            },
+                            {
+                                "id": "mappings",
+                                "value": [
+                                    {
+                                        "options": {
+                                            "-1": {
+                                                "color": "orange",
+                                                "index": 2,
+                                                "text": "UNREACHABLE (Router Down)"
+                                            },
+                                            "0": {
+                                                "color": "red",
+                                                "index": 1,
+                                                "text": "DOWN"
+                                            },
+                                            "1": {
+                                                "color": "green",
+                                                "index": 0,
+                                                "text": "UP"
+                                            }
+                                        },
+                                        "type": "value"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Latency"
+                        },
+                        "properties": [
+                            {
+                                "id": "unit",
+                                "value": "ms"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 30
+            },
+            "id": 13,
+            "options": {
+                "cellHeight": "sm",
+                "footer": {
+                    "countRows": false,
+                    "fields": "",
+                    "reducer": [
+                        "sum"
+                    ],
+                    "show": false
+                },
+                "showHeader": true
+            },
+            "pluginVersion": "10.2.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${datasource}"
+                    },
+                    "expr": "network:device:status_code",
+                    "format": "table",
+                    "instant": true,
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${datasource}"
+                    },
+                    "expr": "network:device:effective_latency * 1000",
+                    "format": "table",
+                    "instant": true,
+                    "refId": "B"
+                }
+            ],
+            "title": "📋 Device Status (Dependency-Aware)",
+            "transformations": [
+                {
+                    "id": "seriesToColumns",
+                    "options": {
+                        "byField": "instance"
+                    }
+                },
+                {
+                    "id": "organize",
+                    "options": {
+                        "excludeByName": {
+                            "Time": true,
+                            "Time 1": true,
+                            "Time 2": true,
+                            "__name__": true,
+                            "__name__ 1": true,
+                            "__name__ 2": true,
+                            "job": true,
+                            "job 1": true,
+                            "job 2": true,
+                            "probe_type": true,
+                            "probe_type 1": true,
+                            "probe_type 2": true
+                        },
+                        "renameByName": {
+                            "Value #A": "Effective Status",
+                            "Value #B": "Latency",
+                            "instance": "Device"
+                        }
+                    }
+                }
+            ],
+            "type": "table"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 38
+            },
+            "id": 14,
+            "panels": [],
+            "title": "🔗 Hierarchical Dependency Map",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+            },
+            "description": "Hierarchical view showing device dependencies. Status cascades: if parent is down, children show UNREACHABLE.",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "custom": {
+                        "align": "center",
+                        "cellOptions": {
+                            "type": "auto"
+                        },
+                        "inspect": false
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "text",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Status"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "mode": "basic",
+                                    "type": "color-background"
+                                }
+                            },
+                            {
+                                "id": "mappings",
+                                "value": [
+                                    {
+                                        "options": {
+                                            "-1": {
+                                                "color": "orange",
+                                                "index": 2,
+                                                "text": "⚠️ UNREACHABLE"
+                                            },
+                                            "0": {
+                                                "color": "red",
+                                                "index": 1,
+                                                "text": "🔴 DOWN"
+                                            },
+                                            "1": {
+                                                "color": "green",
+                                                "index": 0,
+                                                "text": "🟢 UP"
+                                            }
+                                        },
+                                        "type": "value"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Level"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 60
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 24,
+                "x": 0,
+                "y": 39
+            },
+            "id": 15,
+            "options": {
+                "cellHeight": "sm",
+                "footer": {
+                    "countRows": false,
+                    "fields": "",
+                    "reducer": [
+                        "sum"
+                    ],
+                    "show": false
+                },
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "desc": false,
+                        "displayName": "Level"
+                    }
+                ]
+            },
+            "pluginVersion": "10.2.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${datasource}"
+                    },
+                    "expr": "hierarchy:device:status_code",
+                    "format": "table",
+                    "instant": true,
+                    "refId": "A"
+                }
+            ],
+            "title": "📊 Hierarchical Device Status",
+            "transformations": [
+                {
+                    "id": "organize",
+                    "options": {
+                        "excludeByName": {
+                            "Time": true,
+                            "__name__": true,
+                            "job": true,
+                            "probe_type": true
+                        },
+                        "indexByName": {
+                            "level": 0,
+                            "device_name": 1,
+                            "device_type": 2,
+                            "depends_on": 3,
+                            "instance": 4,
+                            "Value": 5
+                        },
+                        "renameByName": {
+                            "Value": "Status",
+                            "device_name": "Device",
+                            "device_type": "Type",
+                            "depends_on": "Depends On",
+                            "instance": "IP",
+                            "level": "Level"
+                        }
+                    }
+                }
+            ],
+            "type": "table"
+        },
+        {
+            "id": 200,
+            "title": "Layer 1: External Network",
+            "type": "row",
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 50
+            },
+            "collapsed": false,
+            "panels": []
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+            },
+            "id": 201,
+            "title": "☁️ Internet",
+            "type": "stat",
+            "gridPos": {
+                "h": 4,
+                "w": 24,
+                "x": 0,
+                "y": 51
+            },
+            "targets": [
+                {
+                    "expr": "hierarchy:device:status_code{device_name='internet'}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "mappings": [
+                        {
+                            "type": "value",
+                            "options": {
+                                "1": {
+                                    "text": "UP",
+                                    "color": "green"
+                                },
+                                "0": {
+                                    "text": "DOWN",
+                                    "color": "red"
+                                },
+                                "-1": {
+                                    "text": "UNREACHABLE",
+                                    "color": "orange"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center"
+            }
+        },
+        {
+            "id": 210,
+            "title": "Layer 2: Gateway",
+            "type": "row",
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 55
+            },
+            "collapsed": false,
+            "panels": []
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+            },
+            "id": 211,
+            "title": "🏠 Router",
+            "type": "stat",
+            "gridPos": {
+                "h": 4,
+                "w": 24,
+                "x": 0,
+                "y": 56
+            },
+            "targets": [
+                {
+                    "expr": "hierarchy:device:status_code{device_name='router'}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "mappings": [
+                        {
+                            "type": "value",
+                            "options": {
+                                "1": {
+                                    "text": "UP",
+                                    "color": "green"
+                                },
+                                "0": {
+                                    "text": "DOWN",
+                                    "color": "red"
+                                },
+                                "-1": {
+                                    "text": "UNREACHABLE",
+                                    "color": "orange"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center"
+            }
+        },
+        {
+            "id": 220,
+            "title": "Layer 3: Infrastructure",
+            "type": "row",
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 60
+            },
+            "collapsed": false,
+            "panels": []
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+            },
+            "id": 221,
+            "title": "🔌 Switch",
+            "type": "stat",
+            "gridPos": {
+                "h": 4,
+                "w": 12,
+                "x": 0,
+                "y": 61
+            },
+            "targets": [
+                {
+                    "expr": "hierarchy:device:status_code{device_name='switch'}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "mappings": [
+                        {
+                            "type": "value",
+                            "options": {
+                                "1": {
+                                    "text": "UP",
+                                    "color": "green"
+                                },
+                                "0": {
+                                    "text": "DOWN",
+                                    "color": "red"
+                                },
+                                "-1": {
+                                    "text": "UNREACHABLE",
+                                    "color": "orange"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center"
+            }
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+            },
+            "id": 222,
+            "title": "📶 Access Point",
+            "type": "stat",
+            "gridPos": {
+                "h": 4,
+                "w": 12,
+                "x": 12,
+                "y": 61
+            },
+            "targets": [
+                {
+                    "expr": "hierarchy:device:status_code{device_name='accesspoint'}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "mappings": [
+                        {
+                            "type": "value",
+                            "options": {
+                                "1": {
+                                    "text": "UP",
+                                    "color": "green"
+                                },
+                                "0": {
+                                    "text": "DOWN",
+                                    "color": "red"
+                                },
+                                "-1": {
+                                    "text": "UNREACHABLE",
+                                    "color": "orange"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center"
+            }
+        },
+        {
+            "id": 230,
+            "title": "Layer 4: End Devices",
+            "type": "row",
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 65
+            },
+            "collapsed": false,
+            "panels": []
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+            },
+            "id": 231,
+            "title": "💻 PC 1",
+            "type": "stat",
+            "gridPos": {
+                "h": 4,
+                "w": 8,
+                "x": 0,
+                "y": 66
+            },
+            "targets": [
+                {
+                    "expr": "hierarchy:device:status_code{device_name='pc1'}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "mappings": [
+                        {
+                            "type": "value",
+                            "options": {
+                                "1": {
+                                    "text": "UP",
+                                    "color": "green"
+                                },
+                                "0": {
+                                    "text": "DOWN",
+                                    "color": "red"
+                                },
+                                "-1": {
+                                    "text": "UNREACHABLE",
+                                    "color": "orange"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center"
+            }
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+            },
+            "id": 232,
+            "title": "💻 PC 2",
+            "type": "stat",
+            "gridPos": {
+                "h": 4,
+                "w": 8,
+                "x": 8,
+                "y": 66
+            },
+            "targets": [
+                {
+                    "expr": "hierarchy:device:status_code{device_name='pc2'}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "mappings": [
+                        {
+                            "type": "value",
+                            "options": {
+                                "1": {
+                                    "text": "UP",
+                                    "color": "green"
+                                },
+                                "0": {
+                                    "text": "DOWN",
+                                    "color": "red"
+                                },
+                                "-1": {
+                                    "text": "UNREACHABLE",
+                                    "color": "orange"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center"
+            }
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+            },
+            "id": 233,
+            "title": "📱 Phone",
+            "type": "stat",
+            "gridPos": {
+                "h": 4,
+                "w": 8,
+                "x": 16,
+                "y": 66
+            },
+            "targets": [
+                {
+                    "expr": "hierarchy:device:status_code{device_name='phone'}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "mappings": [
+                        {
+                            "type": "value",
+                            "options": {
+                                "1": {
+                                    "text": "UP",
+                                    "color": "green"
+                                },
+                                "0": {
+                                    "text": "DOWN",
+                                    "color": "red"
+                                },
+                                "-1": {
+                                    "text": "UNREACHABLE",
+                                    "color": "orange"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center"
+            }
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+            },
+            "id": 18,
+            "gridPos": {
+                "h": 12,
+                "w": 24,
+                "x": 0,
+                "y": 70
+            },
+            "options": {
+                "footer": {
+                    "fields": "",
+                    "reducer": [
+                        "sum"
+                    ],
+                    "show": false
+                },
+                "showHeader": true
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${datasource}"
+                    },
+                    "expr": "hierarchy:device:status_code",
+                    "format": "table",
+                    "instant": true,
+                    "refId": "A"
+                }
+            ],
+            "title": "📋 Network Hierarchy Status",
+            "transformations": [
+                {
+                    "id": "organize",
+                    "options": {
+                        "excludeByName": {
+                            "Time": true,
+                            "__name__": true,
+                            "job": true,
+                            "probe_type": true
+                        },
+                        "renameByName": {
+                            "level": "Level",
+                            "device_name": "Device",
+                            "Value": "Status"
+                        }
+                    }
+                },
+                {
+                    "id": "sortBy",
+                    "options": {
+                        "fields": {},
+                        "sort": [
+                            {
+                                "field": "Level"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "type": "table"
         }
     ],
     "refresh": "15s",

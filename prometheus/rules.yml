@@ -1,0 +1,151 @@
+# Hierarchical Network Dependency Recording Rules
+# Status cascades down the dependency tree
+
+groups:
+  - name: hierarchy_level_0
+    interval: 15s
+    rules:
+      # Level 0: Internet - base status (no parent)
+      - record: hierarchy:device:status
+        expr: probe_success{device_name="internet"}
+        labels:
+          level: "0"
+
+  - name: hierarchy_level_1
+    interval: 15s
+    rules:
+      # Level 1: Router - depends on internet
+      # Status = own status * parent status
+      - record: hierarchy:device:status
+        expr: |
+          probe_success{device_name="router"}
+          * on() group_left()
+          (hierarchy:device:status{device_name="internet"} == 1)
+          or
+          probe_success{device_name="router"} * 0
+        labels:
+          level: "1"
+          
+      # Status code: 1=up, 0=down, -1=unreachable (parent down)
+      - record: hierarchy:device:status_code
+        expr: |
+          (probe_success{device_name="router"} * on() group_left() (hierarchy:device:status{device_name="internet"} == 1))
+          or
+          (-1 * (probe_success{device_name="router"} >= 0) unless on() (hierarchy:device:status{device_name="internet"} == 1))
+        labels:
+          level: "1"
+
+  - name: hierarchy_level_2
+    interval: 15s
+    rules:
+      # Level 2: Switch - depends on router
+      - record: hierarchy:device:status
+        expr: |
+          probe_success{device_name="switch"}
+          * on() group_left()
+          (hierarchy:device:status{device_name="router"} == 1)
+          or
+          probe_success{device_name="switch"} * 0
+        labels:
+          level: "2"
+          
+      - record: hierarchy:device:status_code
+        expr: |
+          (probe_success{device_name="switch"} * on() group_left() (hierarchy:device:status{device_name="router"} == 1))
+          or
+          (-1 * (probe_success{device_name="switch"} >= 0) unless on() (hierarchy:device:status{device_name="router"} == 1))
+        labels:
+          level: "2"
+          
+      # Level 2: Access Point - depends on router
+      - record: hierarchy:device:status
+        expr: |
+          probe_success{device_name="accesspoint"}
+          * on() group_left()
+          (hierarchy:device:status{device_name="router"} == 1)
+          or
+          probe_success{device_name="accesspoint"} * 0
+        labels:
+          level: "2"
+          
+      - record: hierarchy:device:status_code
+        expr: |
+          (probe_success{device_name="accesspoint"} * on() group_left() (hierarchy:device:status{device_name="router"} == 1))
+          or
+          (-1 * (probe_success{device_name="accesspoint"} >= 0) unless on() (hierarchy:device:status{device_name="router"} == 1))
+        labels:
+          level: "2"
+
+  - name: hierarchy_level_3
+    interval: 15s
+    rules:
+      # Level 3: PC1 - depends on switch
+      - record: hierarchy:device:status
+        expr: |
+          probe_success{device_name="pc1"}
+          * on() group_left()
+          (hierarchy:device:status{device_name="switch"} == 1)
+          or
+          probe_success{device_name="pc1"} * 0
+        labels:
+          level: "3"
+          
+      - record: hierarchy:device:status_code
+        expr: |
+          (probe_success{device_name="pc1"} * on() group_left() (hierarchy:device:status{device_name="switch"} == 1))
+          or
+          (-1 * (probe_success{device_name="pc1"} >= 0) unless on() (hierarchy:device:status{device_name="switch"} == 1))
+        labels:
+          level: "3"
+          
+      # Level 3: PC2 - depends on switch
+      - record: hierarchy:device:status
+        expr: |
+          probe_success{device_name="pc2"}
+          * on() group_left()
+          (hierarchy:device:status{device_name="switch"} == 1)
+          or
+          probe_success{device_name="pc2"} * 0
+        labels:
+          level: "3"
+          
+      - record: hierarchy:device:status_code
+        expr: |
+          (probe_success{device_name="pc2"} * on() group_left() (hierarchy:device:status{device_name="switch"} == 1))
+          or
+          (-1 * (probe_success{device_name="pc2"} >= 0) unless on() (hierarchy:device:status{device_name="switch"} == 1))
+        labels:
+          level: "3"
+          
+      # Level 3: Phone - depends on access point
+      - record: hierarchy:device:status
+        expr: |
+          probe_success{device_name="phone"}
+          * on() group_left()
+          (hierarchy:device:status{device_name="accesspoint"} == 1)
+          or
+          probe_success{device_name="phone"} * 0
+        labels:
+          level: "3"
+          
+      - record: hierarchy:device:status_code
+        expr: |
+          (probe_success{device_name="phone"} * on() group_left() (hierarchy:device:status{device_name="accesspoint"} == 1))
+          or
+          (-1 * (probe_success{device_name="phone"} >= 0) unless on() (hierarchy:device:status{device_name="accesspoint"} == 1))
+        labels:
+          level: "3"
+
+  - name: hierarchy_summary
+    interval: 15s
+    rules:
+      # Combined status for all devices
+      - record: hierarchy:all:status_code
+        expr: |
+          label_replace(
+            hierarchy:device:status_code,
+            "status_text",
+            "up",
+            "device_name",
+            ".*"
+          )
